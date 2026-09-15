@@ -5,6 +5,7 @@ description = "Application desktop de gestion de tâches avec PySide6"
 authors = ["VibeCode <vibe@mistral.ai>"]
 readme = "README.md"
 license = "MIT"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
