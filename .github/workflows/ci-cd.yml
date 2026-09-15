@@ -1,0 +1,126 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test on Python ${{ matrix.python-version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: |
+        poetry install --no-interaction --no-root
+
+    - name: Install project
+      run: |
+        poetry install --no-interaction
+
+    - name: Run linting
+      run: |
+        poetry run ruff check src/ tests/
+
+    - name: Run type checking
+      run: |
+        poetry run mypy src/ --ignore-missing-imports
+
+    - name: Run tests with coverage
+      run: |
+        poetry run pytest --cov=src --cov-report=xml --cov-report=term
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: coverage-${{ matrix.os }}-py${{ matrix.python-version }}
+
+  build:
+    name: Build for ${{ matrix.os }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: Install PyInstaller
+      run: |
+        poetry add pyinstaller --group dev
+
+    - name: Build application
+      run: |
+        poetry run pyinstaller --name TaskMaster --windowed --onefile src/main.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: TaskMaster-${{ matrix.os }}
+        path: dist/TaskMaster*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: TaskMaster v${{ github.ref_name }}
+        tag_name: v${{ github.ref_name }}
+        body: |
+          Nouvelle version de TaskMaster
+          
+          Voir [CHANGELOG.md](https://github.com/alnews2/EvaluationDeMistralCODE/blob/main/CHANGELOG.md) pour les détails.
+        files: |
+          artifacts/TaskMaster-*/TaskMaster*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
