@@ -43,13 +43,9 @@ jobs:
           path: .venv
           key: venv-${{ matrix.os }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
+      - name: Install project with all dependencies
         run: |
-          poetry install --no-interaction --no-root
-
-      - name: Install project with dev dependencies
-        run: |
-          poetry install --no-interaction --with dev
+          poetry install --no-interaction
 
       - name: Run linting
         run: |
@@ -84,7 +80,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -103,13 +99,9 @@ jobs:
           path: .venv
           key: venv-${{ matrix.os }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
+      - name: Install project with all dependencies
         run: |
-          poetry install --no-interaction --no-root
-
-      - name: Install project with dev dependencies
-        run: |
-          poetry install --no-interaction --with dev
+          poetry install --no-interaction
 
       - name: Build application
         run: |
