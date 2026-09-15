@@ -1,8 +1,9 @@
 """Unit tests for the Task model."""
 
-import pytest
 from datetime import datetime, timedelta
 from uuid import uuid4
+
+import pytest
 
 from src.app.models.task import Task
 
@@ -13,7 +14,7 @@ class TestTaskModel:
     def test_task_creation_with_defaults(self):
         """Test creating a task with default values."""
         task = Task(title="Test Task")
-        
+
         assert task.title == "Test Task"
         assert task.description == ""
         assert task.completed is False
@@ -26,7 +27,7 @@ class TestTaskModel:
         """Test creating a task with all fields specified."""
         task_id = uuid4()
         due_date = datetime.now() + timedelta(days=7)
-        
+
         task = Task(
             id=task_id,
             title="Full Task",
@@ -37,7 +38,7 @@ class TestTaskModel:
             priority=5,
             tags=["urgent", "work"]
         )
-        
+
         assert task.id == task_id
         assert task.title == "Full Task"
         assert task.description == "Task description"
@@ -55,7 +56,7 @@ class TestTaskModel:
         """Test that creating a task with invalid priority raises ValueError."""
         with pytest.raises(ValueError, match="Priority must be between 1 and 5"):
             Task(title="Test", priority=0)
-        
+
         with pytest.raises(ValueError, match="Priority must be between 1 and 5"):
             Task(title="Test", priority=6)
 
@@ -64,7 +65,7 @@ class TestTaskModel:
         # Task with no due date is not overdue
         task1 = Task(title="No due date")
         assert task1.is_overdue is False
-        
+
         # Completed task with past due date is not overdue
         past_date = datetime.now() - timedelta(days=1)
         task2 = Task(
@@ -73,7 +74,7 @@ class TestTaskModel:
             completed=True
         )
         assert task2.is_overdue is False
-        
+
         # Incomplete task with past due date is overdue
         task3 = Task(
             title="Incomplete with past due",
@@ -81,7 +82,7 @@ class TestTaskModel:
             completed=False
         )
         assert task3.is_overdue is True
-        
+
         # Incomplete task with future due date is not overdue
         future_date = datetime.now() + timedelta(days=1)
         task4 = Task(
@@ -100,7 +101,7 @@ class TestTaskModel:
             4: "Élevée",
             5: "Critique"
         }
-        
+
         for priority, label in priorities.items():
             task = Task(title="Test", priority=priority)
             assert task.priority_label == label
@@ -109,7 +110,7 @@ class TestTaskModel:
         """Test the to_dict method."""
         task_id = uuid4()
         due_date = datetime.now() + timedelta(days=1)
-        
+
         task = Task(
             id=task_id,
             title="Test Task",
@@ -120,9 +121,9 @@ class TestTaskModel:
             priority=4,
             tags=["test", "example"]
         )
-        
+
         task_dict = task.to_dict()
-        
+
         assert task_dict["id"] == str(task_id)
         assert task_dict["title"] == "Test Task"
         assert task_dict["description"] == "Test Description"
@@ -137,7 +138,7 @@ class TestTaskModel:
         task_id = uuid4()
         created_at = datetime.now()
         due_date = created_at + timedelta(days=1)
-        
+
         data = {
             "id": str(task_id),
             "title": "From Dict Task",
@@ -148,9 +149,9 @@ class TestTaskModel:
             "priority": 2,
             "tags": ["from", "dict"]
         }
-        
+
         task = Task.from_dict(data)
-        
+
         assert task.id == task_id
         assert task.title == "From Dict Task"
         assert task.description == "From Dict Description"
@@ -166,9 +167,9 @@ class TestTaskModel:
             "title": "Minimal Task",
             "created_at": datetime.now().isoformat()
         }
-        
+
         task = Task.from_dict(data)
-        
+
         assert task.title == "Minimal Task"
         assert task.description == ""
         assert task.completed is False

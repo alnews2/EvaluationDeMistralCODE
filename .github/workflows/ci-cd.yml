@@ -51,19 +51,24 @@ jobs:
 
       - name: Install project with all dependencies
         run: |
-          poetry install --no-interaction
+          poetry install --no-interaction --no-root
 
       - name: Run linting
         run: |
-          poetry run ruff check src/ tests/
+          poetry run ruff check --fix --unsafe-fixes src/ tests/
 
       - name: Run type checking
         run: |
           poetry run mypy src/ --ignore-missing-imports
 
+      - name: Install Qt dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y libegl1 libgl1-mesa-dri libxkbcommon-x11-0 libgl1 libglx0
+
       - name: Run tests with coverage
         run: |
-          poetry run pytest --cov=src --cov-report=xml --cov-report=term
+          poetry run pytest --cov=src --cov-report=xml --cov-report=term -p no:cacheprovider
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -113,7 +118,7 @@ jobs:
 
       - name: Install project with all dependencies
         run: |
-          poetry install --no-interaction
+          poetry install --no-interaction --no-root
 
       - name: Build application
         run: |

@@ -25,8 +25,6 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-line-length = 88
-target-version = "py310"
 select = [
     "E",   # Pycodestyle errors
     "W",   # Pycodestyle warnings
@@ -37,6 +35,8 @@ select = [
     "UP",  # pyupgrade
 ]
 ignore = ["E501"]
+line-length = 88
+target-version = "py310"
 
 [tool.ruff.isort]
 known-first-party = ["src"]

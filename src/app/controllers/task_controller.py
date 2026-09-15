@@ -1,6 +1,5 @@
 """Controller for managing task-related operations."""
 
-from typing import Optional
 from uuid import UUID
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -12,37 +11,37 @@ from ..services.task_service import TaskService
 class TaskController(QObject):
     """
     Controller class that mediates between the UI and the TaskService.
-    
+
     Uses Qt's Signal/Slot mechanism to enable loose coupling between
     the UI and business logic layers.
     """
-    
+
     # Signals for UI updates
     tasks_updated = Signal(list)  # Emitted when tasks list changes
     task_added = Signal(Task)      # Emitted when a task is added
     task_updated = Signal(Task)   # Emitted when a task is updated
     task_deleted = Signal(UUID)    # Emitted when a task is deleted
     error_occurred = Signal(str)   # Emitted when an error occurs
-    
-    def __init__(self, task_service: Optional[TaskService] = None):
+
+    def __init__(self, task_service: TaskService | None = None):
         """
         Initialize the task controller.
-        
+
         Args:
             task_service: Optional TaskService instance. If None, creates a new one.
         """
         super().__init__()
         self._task_service = task_service or TaskService()
-    
+
     @property
     def task_service(self) -> TaskService:
         """Get the task service instance."""
         return self._task_service
-    
+
     def load_tasks(self) -> list[Task]:
         """
         Load all tasks from the service.
-        
+
         Returns:
             List of all tasks.
         """
@@ -53,24 +52,24 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return []
-    
+
     @Slot(str, str, int, str)
     def add_task(
-        self, 
-        title: str, 
-        description: str = "", 
+        self,
+        title: str,
+        description: str = "",
         priority: int = 3,
         tags_str: str = ""
-    ) -> Optional[Task]:
+    ) -> Task | None:
         """
         Add a new task.
-        
+
         Args:
             title: Task title.
             description: Task description.
             priority: Task priority (1-5).
             tags_str: Comma-separated tags.
-            
+
         Returns:
             The created task, or None if creation failed.
         """
@@ -89,15 +88,15 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return None
-    
+
     @Slot(UUID)
     def delete_task(self, task_id: UUID) -> bool:
         """
         Delete a task by ID.
-        
+
         Args:
             task_id: ID of the task to delete.
-            
+
         Returns:
             True if deletion succeeded, False otherwise.
         """
@@ -110,7 +109,7 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return False
-    
+
     @Slot(UUID, str, str, int, str, bool)
     def update_task(
         self,
@@ -120,10 +119,10 @@ class TaskController(QObject):
         priority: int,
         tags_str: str,
         completed: bool
-    ) -> Optional[Task]:
+    ) -> Task | None:
         """
         Update an existing task.
-        
+
         Args:
             task_id: ID of the task to update.
             title: New title.
@@ -131,7 +130,7 @@ class TaskController(QObject):
             priority: New priority.
             tags_str: Comma-separated tags.
             completed: New completion status.
-            
+
         Returns:
             The updated task, or None if update failed.
         """
@@ -140,7 +139,7 @@ class TaskController(QObject):
             if existing_task is None:
                 self.error_occurred.emit(f"Task with ID {task_id} not found")
                 return None
-            
+
             tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
             updated_task = Task(
                 id=task_id,
@@ -152,7 +151,7 @@ class TaskController(QObject):
                 priority=priority,
                 tags=tags
             )
-            
+
             result = self._task_service.update(updated_task)
             if result:
                 self.task_updated.emit(result)
@@ -161,15 +160,15 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return None
-    
+
     @Slot(UUID)
-    def toggle_task_complete(self, task_id: UUID) -> Optional[Task]:
+    def toggle_task_complete(self, task_id: UUID) -> Task | None:
         """
         Toggle the completion status of a task.
-        
+
         Args:
             task_id: ID of the task to toggle.
-            
+
         Returns:
             The updated task, or None if not found.
         """
@@ -182,15 +181,15 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return None
-    
+
     @Slot(str)
     def search_tasks(self, query: str) -> list[Task]:
         """
         Search tasks by query.
-        
+
         Args:
             query: Search term.
-            
+
         Returns:
             List of matching tasks.
         """
@@ -199,15 +198,15 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return []
-    
+
     @Slot(int)
     def filter_by_priority(self, priority: int) -> list[Task]:
         """
         Filter tasks by priority.
-        
+
         Args:
             priority: Priority level (1-5).
-            
+
         Returns:
             List of tasks with the specified priority.
         """
@@ -216,7 +215,7 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return []
-    
+
     @Slot()
     def get_completed_tasks(self) -> list[Task]:
         """Get all completed tasks."""
@@ -225,7 +224,7 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return []
-    
+
     @Slot()
     def get_pending_tasks(self) -> list[Task]:
         """Get all pending tasks."""
@@ -234,7 +233,7 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return []
-    
+
     @Slot()
     def get_overdue_tasks(self) -> list[Task]:
         """Get all overdue tasks."""
@@ -243,7 +242,7 @@ class TaskController(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             return []
-    
+
     def get_task_count(self) -> int:
         """Get the total number of tasks."""
         return self._task_service.count()
