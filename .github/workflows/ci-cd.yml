@@ -36,12 +36,11 @@ jobs:
         id: poetry-path
         run: |
           echo "path=$(poetry env info --path)" >> $GITHUB_OUTPUT
-        shell: bash
 
       - name: Add Poetry to PATH
         run: |
           echo "${{ steps.poetry-path.outputs.path }}/bin" >> $GITHUB_PATH
-        shell: bash
+          echo "${{ steps.poetry-path.outputs.path }}/Scripts" >> $GITHUB_PATH
 
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -99,12 +98,11 @@ jobs:
         id: poetry-path
         run: |
           echo "path=$(poetry env info --path)" >> $GITHUB_OUTPUT
-        shell: bash
 
       - name: Add Poetry to PATH
         run: |
           echo "${{ steps.poetry-path.outputs.path }}/bin" >> $GITHUB_PATH
-        shell: bash
+          echo "${{ steps.poetry-path.outputs.path }}/Scripts" >> $GITHUB_PATH
 
       - name: Load cached venv
         id: cached-poetry-dependencies
